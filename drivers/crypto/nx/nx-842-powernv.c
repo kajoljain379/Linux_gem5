@@ -723,7 +723,15 @@ static int nx842_open_percpu_txwins(void)
 	for_each_possible_cpu(i) {
 		struct vas_window *txwin = NULL;
 
-		chip_id = cpu_to_chip_id(i);
+
+		struct device_node *np;
+
+		np = of_get_cpu_node(i, NULL);
+		if (!np)
+			chip_id = -1;
+		of_node_put(np);
+		chip_id =  of_get_ibm_chip_id(np);
+		// chip_id = cpu_to_chip_id(i);
 
 		list_for_each_entry_safe(coproc, n, &nx842_coprocs, list) {
 			/*

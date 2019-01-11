@@ -211,8 +211,10 @@ static void disable_nest_pmu_counters(void)
 		cpu = cpumask_first_and(l_cpumask, cpu_online_mask);
 		if (cpu >= nr_cpu_ids)
 			continue;
+		// opal_imc_counters_stop(OPAL_IMC_COUNTERS_NEST,
+		// 		       get_hard_smp_processor_id(cpu));
 		opal_imc_counters_stop(OPAL_IMC_COUNTERS_NEST,
-				       get_hard_smp_processor_id(cpu));
+				       0); // In Uniprocessor the ID is 0
 	}
 	put_online_cpus();
 }
@@ -226,8 +228,10 @@ static void disable_core_pmu_counters(void)
 	/* Disable the IMC Core functions */
 	cores_map = cpu_online_cores_map();
 	for_each_cpu(cpu, &cores_map) {
+		// rc = opal_imc_counters_stop(OPAL_IMC_COUNTERS_CORE,
+		// 			    get_hard_smp_processor_id(cpu));
 		rc = opal_imc_counters_stop(OPAL_IMC_COUNTERS_CORE,
-					    get_hard_smp_processor_id(cpu));
+					   0); // In Uniprocessor the ID is 0
 		if (rc)
 			pr_err("%s: Failed to stop Core (cpu = %d)\n",
 				__FUNCTION__, cpu);
