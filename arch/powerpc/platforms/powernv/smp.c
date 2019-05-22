@@ -19,7 +19,8 @@
 #include <linux/init.h>
 #include <linux/spinlock.h>
 #include <linux/cpu.h>
-
+#include <asm/ppc_asm.h>
+#include <asm/ppc-opcode.h>
 #include <asm/irq.h>
 #include <asm/smp.h>
 #include <asm/paca.h>
@@ -57,21 +58,32 @@ static void pnv_smp_setup_cpu(int cpu)
 	 */
 	if (pvr_version_is(PVR_POWER9))
 		mtspr(SPRN_HMEER, mfspr(SPRN_HMEER) | PPC_BIT(17));
-
+      /*  
 	if (xive_enabled())
 		xive_smp_setup_cpu();
 	else if (cpu != boot_cpuid)
 		xics_setup_cpu();
+	*/
 }
 
+unsigned long start_smp;
 static int pnv_smp_kick_cpu(int nr)
-{
-	unsigned int pcpu;
+{ 	unsigned int pcpu;
 	unsigned long start_here =
 			__pa(ppc_function_entry(generic_secondary_smp_init));
 	long rc;
 	uint8_t status;
-
+	start_smp = start_here;
+	printk("start here address 0x%016lx\n",start_smp);
+	//asm volatile("LOAD_REG_IMMEDIATE(r25,0xc00000000000a83c)");
+	asm volatile("lis     25,(0xc00000000000a83c)@highest");		
+	asm volatile("ori     25,25,(0xc00000000000a83c)@higher");	
+	asm volatile("rldicr  25,25,32,31");		
+	asm volatile("oris    25,25,(0xc00000000000a83c)@h");	
+	asm volatile("ori     25,25,(0xc00000000000a83c)@l");
+	asm volatile("li 24,1");
+        asm volatile("std 24,0(25)");
+	
 	if (nr < 0 || nr >= nr_cpu_ids)
 		return -EINVAL;
 
@@ -285,11 +297,11 @@ static void pnv_cause_ipi(int cpu)
 
 static void __init pnv_smp_probe(void)
 {
-	if (xive_enabled())
+	/*if (xive_enabled())
 		xive_smp_probe();
 	else
 		xics_smp_probe();
-
+        */
 	if (cpu_has_feature(CPU_FTR_DBELL)) {
 		ic_cause_ipi = smp_ops->cause_ipi;
 		WARN_ON(!ic_cause_ipi);

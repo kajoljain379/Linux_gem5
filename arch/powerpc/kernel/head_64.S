@@ -331,6 +331,35 @@ _GLOBAL(generic_secondary_thread_init)
  * this core already exists (setup via some other mechanism such
  * as SCOM before entry).
  */
+
+// Function to loop for Secondary thread 
+
+.globl	__secondary_smp
+__secondary_smp:
+	.long  0x123
+/*
+_GLOBAL(smp_loop_heck)
+1:   LOAD_REG_ADDR(r25, __secondary_smp)
+     lis r25, __secondary_smp@highest
+     ori   r25, r25, __secondary_smp@higher
+     rldicr r25, r25, 32, 31
+     oris r25, r25, __secondary_smp@h
+     ori  r25, r25, __secondary_smp@l
+     ld r24, 0(r25)
+     cmpdi r24, 0
+     beq 1b
+     b   generic_secondary_smp_init
+*/
+_GLOBAL(smp_loop_heck)
+   LOAD_REG_IMMEDIATE(r25,0xc00000000000a83c)
+     li r24,0
+     std r24, 0(r25)
+
+1:   ld r24, 0(r25)
+     cmpdi r24, 0
+     beq 1b
+     b   generic_secondary_smp_init
+
 _GLOBAL(generic_secondary_smp_init)
 	FIXUP_ENDIAN
 	mr	r24,r3
