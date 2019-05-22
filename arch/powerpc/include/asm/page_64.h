@@ -41,7 +41,6 @@
 
 #ifndef __ASSEMBLY__
 #include <asm/cache.h>
-#include <asm/string.h>
 
 typedef unsigned long pte_basic_t;
 
@@ -61,7 +60,7 @@ static inline void clear_page(void *addr)
 	twox = onex << 1;
 	fourx = onex << 2;
 	eightx = onex << 3;
-	memset(addr, 0, PAGE_SIZE); // NO support for dcbz yet, therefore zeroing out the pages with a memset.
+
 	asm volatile(
 	"mtctr	%1	# clear_page\n\
 	.balign	16\n\
